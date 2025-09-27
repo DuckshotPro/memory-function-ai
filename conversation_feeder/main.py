@@ -36,7 +36,10 @@ async def get_api_key(api_key_header: str = Security(API_KEY_HEADER)):
 # --- Core Logic ---
 async def generate_embedding(text: str) -> list[float]:
     try:
-        result = await asyncio.to_thread(genai.embed_content, model='models/embedding-001', content=text)
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(
+            None, lambda: genai.embed_content(model='models/embedding-001', content=text)
+        )
         return result['embedding']
     except Exception as e:
         print(f"Error generating embedding: {e}")
