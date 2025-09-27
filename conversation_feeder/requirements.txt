@@ -3,7 +3,7 @@ uvicorn
 pydantic-settings
 asyncpg
 SQLAlchemy
-pgvector-python
+pgvector
 google-generativeai
 python-multipart
 Jinja2

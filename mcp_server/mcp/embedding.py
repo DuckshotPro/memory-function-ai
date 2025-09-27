@@ -1,5 +1,9 @@
 import google.generativeai as genai
 import asyncio
+from config import settings
+
+# Configure the API key
+genai.configure(api_key=settings.gemini_api_key)
 
 async def generate_embedding(text: str) -> list[float]:
     """Generates an embedding for the given text using the Google AI API."""

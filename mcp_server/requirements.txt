@@ -4,9 +4,12 @@ pydantic-settings
 google-generativeai
 SQLAlchemy
 alembic
+asyncpg
+pgvector
 
 # Testing & Linting
 pytest
 pytest-asyncio
 pytest-mock
 httpx
+--fix
