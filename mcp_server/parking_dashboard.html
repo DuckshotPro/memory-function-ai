@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Lot Automation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            text-align: center;
+            color: #1e3c72;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+            font-size: 1.2em;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-active { background: #4CAF50; }
+        .status-warning { background: #FF9800; }
+        .status-error { background: #F44336; }
+        .status-stopped { background: #9E9E9E; }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #1e3c72;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-stop {
+            background: #F44336;
+            color: white;
+        }
+
+        .btn-restart {
+            background: #FF9800;
+            color: white;
+        }
+
+        .btn-logs {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .log-entry {
+            color: #00ff00;
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-error {
+            color: #ff4444;
+        }
+
+        .log-warning {
+            color: #ffaa00;
+        }
+
+        .log-info {
+            color: #00aaff;
+        }
+
+        .chart-container {
+            height: 200px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .chart {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #f0f8ff 25%, transparent 25%),
+                        linear-gradient(-45deg, #f0f8ff 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #f0f8ff 75%),
+                        linear-gradient(-45deg, transparent 75%, #f0f8ff 75%);
+            background-size: 20px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: end;
+            padding: 20px;
+            gap: 5px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, #1e3c72, #2a5298);
+            border-radius: 3px 3px 0 0;
+            transition: all 0.3s ease;
+            min-height: 10px;
+        }
+
+        .chart-bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.1);
+        }
+
+        .system-overview {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.1) 0%, rgba(42, 82, 152, 0.1) 100%);
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .overview-stat {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+        }
+
+        .overview-stat .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .overview-stat .label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .automation-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(240, 248, 255, 0.5);
+            border-radius: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(30px);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .control-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                flex: none;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚗 Parking Lot Automation Dashboard</h1>
+        <div class="subtitle">Unified Control Center for All Business Automations</div>
+    </div>
+
+    <div class="container">
+        <!-- System Overview -->
+        <div class="card system-overview">
+            <h3>📊 System Overview</h3>
+            <div class="overview-grid">
+                <div class="overview-stat">
+                    <div class="number" id="total-automations">8</div>
+                    <div class="label">Active Automations</div>
+                </div>
+                <div class="overview-stat">
+                    <div class="number" id="daily-leads">47</div>
+                    <div class="label">Leads Today</div>
+                </div>
+                <div class="overview-stat">
+                    <div class="number" id="emails-sent">156</div>
+                    <div class="label">Emails Sent</div>
+                </div>
+                <div class="overview-stat">
+                    <div class="number" id="appointments">12</div>
+                    <div class="label">Appointments</div>
+                </div>
+                <div class="overview-stat">
+                    <div class="number" id="system-uptime">99.8%</div>
+                    <div class="label">System Uptime</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Marketing Automation -->
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-active pulse"></span>
+                    📧 Marketing Automation
+                </h3>
+                <div class="metric">
+                    <span class="metric-label">Lead Generation</span>
+                    <span class="metric-value">Active</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Email Sequences</span>
+                    <span class="metric-value">5 Running</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Social Media Posts</span>
+                    <span class="metric-value">3 Today</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Response Rate</span>
+                    <span class="metric-value">3.2%</span>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-stop" onclick="stopAutomation('marketing')">Stop</button>
+                    <button class="btn btn-restart" onclick="restartAutomation('marketing')">Restart</button>
+                    <button class="btn btn-logs" onclick="showLogs('marketing')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Calendar Management -->
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-active"></span>
+                    📅 Calendar Management
+                </h3>
+                <div class="metric">
+                    <span class="metric-label">Appointments Today</span>
+                    <span class="metric-value">8</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Auto-Scheduled</span>
+                    <span class="metric-value">15 This Week</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Conflicts Resolved</span>
+                    <span class="metric-value">3</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Next Available</span>
+                    <span class="metric-value">Tomorrow 2PM</span>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-stop" onclick="stopAutomation('calendar')">Stop</button>
+                    <button class="btn btn-restart" onclick="restartAutomation('calendar')">Restart</button>
+                    <button class="btn btn-logs" onclick="showLogs('calendar')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Email Backlog Processing -->
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-active"></span>
+                    📬 Email Backlog Processing
+                </h3>
+                <div class="metric">
+                    <span class="metric-label">Emails Processed</span>
+                    <span class="metric-value">234 Today</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Queue Size</span>
+                    <span class="metric-value">12</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Processing Rate</span>
+                    <span class="metric-value">45/hour</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Error Rate</span>
+                    <span class="metric-value">0.2%</span>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-stop" onclick="stopAutomation('email')">Stop</button>
+                    <button class="btn btn-restart" onclick="restartAutomation('email')">Restart</button>
+                    <button class="btn btn-logs" onclick="showLogs('email')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Client Retrieval System -->
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-active"></span>
+                    👥 Client Retrieval System
+                </h3>
+                <div class="metric">
+                    <span class="metric-label">Active Clients</span>
+                    <span class="metric-value">89</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Data Updates</span>
+                    <span class="metric-value">23 Today</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Sync Status</span>
+                    <span class="metric-value">Real-time</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Last Backup</span>
+                    <span class="metric-value">2 hours ago</span>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-stop" onclick="stopAutomation('client')">Stop</button>
+                    <button class="btn btn-restart" onclick="restartAutomation('client')">Restart</button>
+                    <button class="btn btn-logs" onclick="showLogs('client')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Lead Scoring Engine -->
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-warning"></span>
+                    🎯 Lead Scoring Engine
+                </h3>
+                <div class="metric">
+                    <span class="metric-label">Hot Leads</span>
+                    <span class="metric-value">7</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Warm Leads</span>
+                    <span class="metric-value">23</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Scoring Accuracy</span>
+                    <span class="metric-value">87%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Conversion Rate</span>
+                    <span class="metric-value">18%</span>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-start" onclick="startAutomation('scoring')">Start</button>
+                    <button class="btn btn-restart" onclick="restartAutomation('scoring')">Restart</button>
+                    <button class="btn btn-logs" onclick="showLogs('scoring')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Quote Generation -->
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-active"></span>
+                    💰 Quote Generation
+                </h3>
+                <div class="metric">
+                    <span class="metric-label">Quotes Generated</span>
+                    <span class="metric-value">18 Today</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Average Quote</span>
+                    <span class="metric-value">$2,450</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Accept Rate</span>
+                    <span class="metric-value">22%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Response Time</span>
+                    <span class="metric-value">12 minutes</span>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-stop" onclick="stopAutomation('quotes')">Stop</button>
+                    <button class="btn btn-restart" onclick="restartAutomation('quotes')">Restart</button>
+                    <button class="btn btn-logs" onclick="showLogs('quotes')">Logs</button>
+                </div>
+            </div>
+
+            <!-- Performance Analytics -->
+            <div class="card">
+                <h3>📈 Weekly Performance</h3>
+                <div class="chart-container">
+                    <div class="chart" id="performance-chart">
+                        <div class="chart-bar" style="height: 60%" title="Monday: 45 leads"></div>
+                        <div class="chart-bar" style="height: 80%" title="Tuesday: 67 leads"></div>
+                        <div class="chart-bar" style="height: 45%" title="Wednesday: 34 leads"></div>
+                        <div class="chart-bar" style="height: 90%" title="Thursday: 78 leads"></div>
+                        <div class="chart-bar" style="height: 70%" title="Friday: 56 leads"></div>
+                        <div class="chart-bar" style="height: 30%" title="Saturday: 23 leads"></div>
+                        <div class="chart-bar" style="height: 25%" title="Sunday: 18 leads"></div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">This Week</span>
+                    <span class="metric-value">321 Leads</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">vs Last Week</span>
+                    <span class="metric-value" style="color: #4CAF50;">+15%</span>
+                </div>
+            </div>
+
+            <!-- System Controls -->
+            <div class="card">
+                <h3>⚙️ System Controls</h3>
+                <div class="automation-toggle">
+                    <span>Master Switch</span>
+                    <div class="toggle-switch active" onclick="toggleMaster(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="automation-toggle">
+                    <span>Night Mode</span>
+                    <div class="toggle-switch" onclick="toggleNightMode(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="automation-toggle">
+                    <span>Auto-Restart</span>
+                    <div class="toggle-switch active" onclick="toggleAutoRestart(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn btn-restart" onclick="restartAllSystems()">Restart All</button>
+                    <button class="btn btn-logs" onclick="showSystemLogs()">System Logs</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Logs -->
+        <div class="card" id="logs-container" style="display: none;">
+            <h3>📄 System Logs</h3>
+            <div class="log-container" id="system-logs">
+                <div class="log-entry log-info">[2025-09-27 02:05:15] INFO: Marketing automation started successfully</div>
+                <div class="log-entry log-info">[2025-09-27 02:04:32] INFO: Email queue processing 45 items/hour</div>
+                <div class="log-entry log-warning">[2025-09-27 02:03:18] WARN: Lead scoring engine requires restart</div>
+                <div class="log-entry log-info">[2025-09-27 02:02:45] INFO: Calendar sync completed - 8 appointments today</div>
+                <div class="log-entry log-info">[2025-09-27 02:01:12] INFO: Client data backup completed successfully</div>
+                <div class="log-entry log-info">[2025-09-27 02:00:00] INFO: Daily automation cycle started</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Automation control functions
+        function startAutomation(type) {
+            console.log(`Starting ${type} automation`);
+            updateStatus(type, 'active');
+            showNotification(`${type} automation started`, 'success');
+        }
+
+        function stopAutomation(type) {
+            console.log(`Stopping ${type} automation`);
+            updateStatus(type, 'stopped');
+            showNotification(`${type} automation stopped`, 'warning');
+        }
+
+        function restartAutomation(type) {
+            console.log(`Restarting ${type} automation`);
+            updateStatus(type, 'active');
+            showNotification(`${type} automation restarted`, 'success');
+        }
+
+        function showLogs(type) {
+            console.log(`Showing logs for ${type}`);
+            document.getElementById('logs-container').style.display = 'block';
+            document.getElementById('logs-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showSystemLogs() {
+            const logsContainer = document.getElementById('logs-container');
+            logsContainer.style.display = logsContainer.style.display === 'none' ? 'block' : 'none';
+            if (logsContainer.style.display === 'block') {
+                logsContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function updateStatus(type, status) {
+            // Update status indicators based on automation type
+            const statusClasses = {
+                'active': 'status-active',
+                'warning': 'status-warning',
+                'error': 'status-error',
+                'stopped': 'status-stopped'
+            };
+
+            // This would be connected to actual automation systems
+            console.log(`Status updated: ${type} -> ${status}`);
+        }
+
+        function toggleMaster(element) {
+            element.classList.toggle('active');
+            const isActive = element.classList.contains('active');
+            showNotification(isActive ? 'Master switch enabled' : 'Master switch disabled', isActive ? 'success' : 'warning');
+        }
+
+        function toggleNightMode(element) {
+            element.classList.toggle('active');
+            const isActive = element.classList.contains('active');
+            showNotification(isActive ? 'Night mode enabled' : 'Night mode disabled', 'info');
+        }
+
+        function toggleAutoRestart(element) {
+            element.classList.toggle('active');
+            const isActive = element.classList.contains('active');
+            showNotification(isActive ? 'Auto-restart enabled' : 'Auto-restart disabled', 'info');
+        }
+
+        function restartAllSystems() {
+            showNotification('Restarting all systems...', 'info');
+            setTimeout(() => {
+                showNotification('All systems restarted successfully', 'success');
+            }, 3000);
+        }
+
+        function showNotification(message, type) {
+            // Create a simple notification system
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'warning' ? '#FF9800' : '#2196F3'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+
+            document.body.appendChild(notification);
+
+            // Fade in
+            setTimeout(() => notification.style.opacity = '1', 100);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // Simulate real-time updates
+        function updateMetrics() {
+            // Update random metrics to simulate live data
+            const elements = [
+                { id: 'daily-leads', min: 40, max: 60 },
+                { id: 'emails-sent', min: 150, max: 200 },
+                { id: 'appointments', min: 8, max: 15 }
+            ];
+
+            elements.forEach(element => {
+                const el = document.getElementById(element.id);
+                if (el) {
+                    const currentValue = parseInt(el.textContent);
+                    const change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+                    const newValue = Math.max(element.min, Math.min(element.max, currentValue + change));
+                    el.textContent = newValue;
+                }
+            });
+        }
+
+        // Update metrics every 30 seconds
+        setInterval(updateMetrics, 30000);
+
+        // Add log entry
+        function addLogEntry(message, type = 'info') {
+            const logsContainer = document.getElementById('system-logs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+
+            // Keep only last 20 log entries
+            while (logsContainer.children.length > 20) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            addLogEntry('Dashboard initialized successfully');
+            console.log('Parking Lot Automation Dashboard loaded');
+        });
+    </script>
+</body>
+</html>
