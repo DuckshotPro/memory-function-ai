@@ -4,6 +4,8 @@ pydantic-settings
 google-generativeai
 SQLAlchemy
 alembic
+asyncpg
+pgvector
 
 # Testing & Linting
 pytest

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
 from .adapters.gemini import GeminiAdapter
 from .adapters.base import BaseAdapter
 from .database.db import db_pool
@@ -10,10 +11,23 @@ from .summarize import summarize_messages
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-app = FastAPI(title="MCP Server")
 
 # Database and LLM Adapter setup
 llm_adapter: BaseAdapter = GeminiAdapter()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    # In a real app, you would properly manage the pool
+    # For this example, we assume db.py handles it
+    yield
+    # Shutdown
+    pass
+
+
+app = FastAPI(title="MCP Server", lifespan=lifespan)
+
 
 class ChatRequest(BaseModel):
     conversation_id: int | None = None
@@ -21,16 +35,6 @@ class ChatRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
-
-@app.on_event("startup")
-async def startup_event():
-    # In a real app, you would properly manage the pool
-    # For this example, we assume db.py handles it
-    pass
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    pass
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
