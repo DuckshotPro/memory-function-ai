@@ -1,0 +1,40 @@
+name: Python CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r mcp_server/requirements.txt
+        pip install -r conversation_feeder/requirements.txt
+
+    - name: Lint with ruff
+      run: |
+        pip install ruff
+        ruff check .
+
+    - name: Test with pytest
+      env:
+        # NOTE: You will need to set these as secrets in your GitHub repository settings
+        # For tests to pass, you might need a separate test database.
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
+        FEEDER_AUTH_TOKEN: "test_token"
+      run: |
+        pytest

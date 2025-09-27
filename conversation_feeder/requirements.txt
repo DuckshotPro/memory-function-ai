@@ -1,12 +1,16 @@
 fastapi
 uvicorn
 pydantic-settings
-google-generativeai
+asyncpg
 SQLAlchemy
-alembic
+pgvector-python
+google-generativeai
+python-multipart
+Jinja2
 
 # Testing & Linting
 pytest
 pytest-asyncio
 pytest-mock
 httpx
+ruff
