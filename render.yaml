@@ -8,7 +8,8 @@ services:
     name: mcp-server
     env: docker
     repo: https://github.com/DuckshotPro/memory-function-ai.git
-    dockerfilePath: ./mcp_server/Dockerfile
+    dockerContext: ./mcp_server
+    dockerfilePath: ./Dockerfile
     region: oregon
     envVars:
       - key: DATABASE_URL
@@ -23,7 +24,8 @@ services:
     name: conversation-feeder
     env: docker
     repo: https://github.com/DuckshotPro/memory-function-ai.git
-    dockerfilePath: ./conversation_feeder/Dockerfile
+    dockerContext: ./conversation_feeder
+    dockerfilePath: ./Dockerfile
     region: oregon
     envVars:
       - key: DATABASE_URL
