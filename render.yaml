@@ -1,8 +1,6 @@
 databases:
   - name: memory-db
     region: oregon
-    extensions:
-      - name: pgvector
 
 services:
   # Main MCP Server
