@@ -1,0 +1,40 @@
+services:
+  # 1. The PostgreSQL Database
+  - name: memory-db
+    type: postgres
+    postgres:
+      version: '15'
+      extensions:
+        - name: pgvector
+
+  # 2. The Main MCP Server
+  - name: mcp-server
+    type: web
+    env: docker
+    repo: https://github.com/DuckshotPro/memory-function-ai.git
+    dockerfilePath: ./mcp_server/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: postgres
+          name: memory-db
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false # Secret - set in Render dashboard
+
+  # 3. The Conversation Feeder Service
+  - name: conversation-feeder
+    type: web
+    env: docker
+    repo: https://github.com/DuckshotPro/memory-function-ai.git
+    dockerfilePath: ./conversation_feeder/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: postgres
+          name: memory-db
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false # Secret - set in Render dashboard
+      - key: FEEDER_AUTH_TOKEN
+        sync: false # Secret - set in Render dashboard
