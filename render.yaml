@@ -25,7 +25,7 @@ services:
     env: docker
     repo: https://github.com/DuckshotPro/memory-function-ai.git
     dockerContext: ./conversation_feeder
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: Dockerfile
     region: oregon
     envVars:
       - key: DATABASE_URL
