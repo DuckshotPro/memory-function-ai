@@ -90,6 +90,13 @@ async def search(request: SearchRequest):
     relevant_messages = await find_relevant_messages(request.query)
     return {"results": [{"role": msg.role, "content": msg.content, "conversation_id": msg.conversation_id} for msg in relevant_messages]}
 
+from fastapi.responses import FileResponse
+
+@app.get("/ingest", response_class=FileResponse)
+async def ingest_page():
+    """Serves the manual ingest HTML page."""
+    return "manual_ingest.html"
+
 @app.get("/")
 def read_root():
     """Root endpoint for the MCP Server."""

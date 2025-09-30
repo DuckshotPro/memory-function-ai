@@ -36,3 +36,26 @@ services:
         sync: false
       - key: FEEDER_AUTH_TOKEN
         sync: false
+
+  # Conversation Logger Agent
+  - type: worker
+    name: conversation-logger
+    env: docker
+    repo: https://github.com/DuckshotPro/memory-function-ai.git # Assuming adk-python is in the same repo or accessible
+    dockerContext: ./adk-python # Assumes Dockerfile is in adk-python/
+    dockerfilePath: ./Dockerfile # You will need to create a Dockerfile for the adk-python project
+    region: oregon
+    plan: starter
+    startCommand: python src/google/adk/apps/conversation_logger.py
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MEMORY_API_URL
+        fromService:
+          type: web
+          name: mcp-server
+          envVarKey: RENDER_EXTERNAL_URL
+    disks:
+      - name: gemini-data
+        mountPath: /var/data/gemini
+        sizeGB: 1
