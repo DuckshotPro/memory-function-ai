@@ -4,13 +4,10 @@ Unified Dashboard Backend API Server
 Connects to all automation systems and provides real-time data
 """
 
-import os
-import json
-import time
 import sqlite3
 import threading
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -217,7 +214,7 @@ class AutomationMonitor:
     def restart_automation(self, name):
         """Restart specific automation"""
         self.log_entry('system', 'info', f'Restarting {name} automation...')
-        stop_result = self.stop_automation(name)
+        self.stop_automation(name)
         time.sleep(2)  # Wait for cleanup
         start_result = self.start_automation(name)
         return start_result

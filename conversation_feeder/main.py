@@ -1,10 +1,10 @@
 import asyncio
 import asyncpg
 import google.generativeai as genai
-from fastapi import FastAPI, Request, Depends, HTTPException, Security, Form
+from fastapi import FastAPI, Depends, HTTPException, Security, Form
 from fastapi.responses import HTMLResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List
 
 from config import settings

@@ -43,7 +43,7 @@ class ConversationLoggerAgent:
         while True:
             new_content = self._read_new_content()
             if new_content:
-                print(f"Detected new content. Logging to database...")
+                print("Detected new content. Logging to database...")
                 response = await self._agent.send_message(
                     f'Log the following conversation snippet: "{new_content}'
                 )
